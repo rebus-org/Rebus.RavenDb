@@ -1,4 +1,4 @@
-# Rebus.TODO
+# Rebus.RavenDb
 
 Provides a RavenDB persistence for [Rebus](https://github.com/rebus-org/Rebus) for
 
