@@ -25,7 +25,7 @@ namespace Rebus.RavenDb.Subscriptions
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
             _documentStore = documentStore;
             IsCentralized = isCentralized;
-            _logger = rebusLoggerFactory.GetCurrentClassLogger();
+            _logger = rebusLoggerFactory.GetLogger<RavenDbSubscriptionStorage>();
         }
 
         /// <summary>

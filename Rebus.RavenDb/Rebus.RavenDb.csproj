@@ -40,8 +40,7 @@
       <HintPath>..\packages\RavenDB.Client.3.5.1\lib\net45\Raven.Client.Lightweight.dll</HintPath>
     </Reference>
     <Reference Include="Rebus, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Rebus.3.0.0-beta04\lib\NET45\Rebus.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Rebus.3.0.0\lib\NET45\Rebus.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

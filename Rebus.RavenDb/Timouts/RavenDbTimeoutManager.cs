@@ -27,7 +27,7 @@ namespace Rebus.RavenDb.Timouts
         public RavenDbTimeoutManager(IDocumentStore documentStore, IRebusLoggerFactory rebusLoggerFactory)
         {
             _documentStore = documentStore;
-            _log = rebusLoggerFactory.GetCurrentClassLogger();
+            _log = rebusLoggerFactory.GetLogger<RavenDbTimeoutManager>();
         }
 
         public async Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
