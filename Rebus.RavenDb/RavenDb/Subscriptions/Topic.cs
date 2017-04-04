@@ -35,11 +35,11 @@ namespace Rebus.RavenDb.Subscriptions
         }
 
         /// <summary>
-        /// Unregisters the given <paramref name="address"/> as a subscriber
+        /// Unregisters the given <paramref name="subscriberAddress"/> as a subscriber
         /// </summary>
-        public void Unregister(string endpoint)
+        public void Unregister(string subscriberAddress)
         {
-            SubscriberAddresses.Remove(endpoint);
+            SubscriberAddresses.Remove(subscriberAddress);
         }
 
         /// <summary>
