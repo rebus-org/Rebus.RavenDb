@@ -1,15 +1,14 @@
-﻿using Raven.Client;
-using Rebus.Config;
-using Rebus.RavenDb.Subscriptions;
-using Rebus.RavenDb.Timouts;
-using Rebus.Subscriptions;
-using Rebus.Timeouts;
-using System;
+﻿using System;
+using Raven.Client;
 using Rebus.Logging;
 using Rebus.RavenDb.Sagas;
+using Rebus.RavenDb.Subscriptions;
+using Rebus.RavenDb.Timouts;
 using Rebus.Sagas;
+using Rebus.Subscriptions;
+using Rebus.Timeouts;
 
-namespace Rebus.RavenDb
+namespace Rebus.Config
 {
     /// <summary>
     /// Configuration extensions for RavenDB persistence
