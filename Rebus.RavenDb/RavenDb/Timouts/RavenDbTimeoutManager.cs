@@ -30,6 +30,7 @@ namespace Rebus.RavenDb.Timouts
             _log = rebusLoggerFactory.GetLogger<RavenDbTimeoutManager>();
         }
 
+        /// <inheritdoc />
         public async Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {
             var newTimeout = new Timeout(headers, body, approximateDueTime.UtcDateTime);
