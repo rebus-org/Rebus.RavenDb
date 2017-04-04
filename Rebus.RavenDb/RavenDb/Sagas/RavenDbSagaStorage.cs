@@ -243,7 +243,7 @@ namespace Rebus.RavenDb.Sagas
             return documentIds;
         }
 
-        public class SagaDataDocument
+        internal class SagaDataDocument
         {
             [JsonConstructor]
             SagaDataDocument()
@@ -267,7 +267,7 @@ namespace Rebus.RavenDb.Sagas
             }
         }
 
-        public class SagaCorrelationPropertyDocument
+        internal class SagaCorrelationPropertyDocument
         {
             [JsonConstructor]
             SagaCorrelationPropertyDocument()
