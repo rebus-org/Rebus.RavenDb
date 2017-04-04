@@ -31,10 +31,7 @@ namespace Rebus.RavenDb.Sagas
             _documentStore = documentStore;
         }
 
-        /// <summary>
-        /// Finds an already-existing instance of the given saga data type that has a property with the given <paramref name="propertyName"/>
-        /// whose value matches <paramref name="propertyValue"/>. Returns null if no such instance could be found
-        /// </summary>
+        /// <inheritdoc />
         public async Task<ISagaData> Find(Type sagaDataType, string propertyName, object propertyValue)
         {
             using (var session = _documentStore.OpenAsyncSession())
@@ -72,6 +69,7 @@ namespace Rebus.RavenDb.Sagas
             }
         }
 
+        /// <inheritdoc />
         public async Task Insert(ISagaData sagaData, IEnumerable<ISagaCorrelationProperty> correlationProperties)
         {
             if (sagaData.Id == Guid.Empty)
@@ -108,6 +106,7 @@ namespace Rebus.RavenDb.Sagas
             }
         }
 
+        /// <inheritdoc />
         public async Task Update(ISagaData sagaData, IEnumerable<ISagaCorrelationProperty> correlationProperties)
         {
             using (var session = _documentStore.OpenAsyncSession())
@@ -154,6 +153,7 @@ namespace Rebus.RavenDb.Sagas
             }
         }
 
+        /// <inheritdoc />
         public async Task Delete(ISagaData sagaData)
         {
             using (var session = _documentStore.OpenAsyncSession())
