@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+// ReSharper disable once RedundantUsingDirective (because .net core :))
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -182,6 +183,8 @@ namespace Rebus.RavenDb.Sagas
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not delete saga data with ID {sagaData.Id}");
                 }
             }
+
+            sagaData.Revision++;
         }
 
         static async Task DeleteCorrelationPropertyDataForSaga(SagaDataDocument sagaDataDocument, IAsyncDocumentSession session)
