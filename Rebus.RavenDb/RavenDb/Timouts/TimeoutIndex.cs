@@ -1,5 +1,5 @@
-using Raven.Client.Indexes;
 using System.Linq;
+using Raven.Client.Documents.Indexes;
 
 namespace Rebus.RavenDb.Timouts
 {

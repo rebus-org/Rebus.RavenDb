@@ -1,5 +1,3 @@
-using Raven.Abstractions.Commands;
-using Raven.Client;
 using Rebus.Extensions;
 using Rebus.Logging;
 using Rebus.Messages;
@@ -9,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Commands.Batches;
+
 #pragma warning disable 1998
 
 namespace Rebus.RavenDb.Timouts
@@ -60,7 +61,7 @@ namespace Rebus.RavenDb.Timouts
             var dueMessages = timeouts
                 .Select(timeout => new DueMessage(timeout.Headers, timeout.Body, async () =>
                 {
-                    session.Advanced.Defer(new DeleteCommandData {Key = timeout.Id});
+                    session.Advanced.Defer(new DeleteCommandData(timeout.Id, null));
                 }));
 
             return new DueMessagesResult(dueMessages, async () =>

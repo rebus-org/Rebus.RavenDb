@@ -1,5 +1,5 @@
 ﻿using System;
-using Raven.Client;
+using Raven.Client.Documents;
 using Rebus.Logging;
 using Rebus.RavenDb.Sagas;
 using Rebus.RavenDb.Subscriptions;

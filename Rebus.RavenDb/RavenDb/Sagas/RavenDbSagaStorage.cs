@@ -6,8 +6,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Raven.Client;
-using Raven.Imports.Newtonsoft.Json;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
 using Rebus.Exceptions;
 using Rebus.Sagas;
 // ReSharper disable UnusedMember.Local
@@ -100,7 +102,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not insert saga data with ID {sagaData.Id}");
                 }
@@ -147,7 +149,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not update saga data with ID {sagaData.Id} to revision {sagaData.Revision}");
                 }
@@ -178,7 +180,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not delete saga data with ID {sagaData.Id}");
                 }
@@ -204,7 +206,7 @@ namespace Rebus.RavenDb.Sagas
             foreach (var existingSagaCorrelationPropertyDocument in existingSagaCorrelationPropertyDocuments)
             {
                 // if - for some reason - the correlation property belongs to someone else (this should not happen) - we skip it!
-                if (existingSagaCorrelationPropertyDocument.SagaDataDocumentId != documentId) continue;
+                if (existingSagaCorrelationPropertyDocument.Value.SagaDataDocumentId != documentId) continue;
 
                 session.Delete(existingSagaCorrelationPropertyDocument);
             }
@@ -246,7 +248,7 @@ namespace Rebus.RavenDb.Sagas
             return documentIds;
         }
 
-        internal class SagaDataDocument
+        public class SagaDataDocument
         {
             [JsonConstructor]
             SagaDataDocument()
