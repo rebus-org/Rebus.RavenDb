@@ -1,18 +1,19 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stuff", "stuff", "{1ABDD7C1-1F8D-402D-8692-3E4B66962DE0}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		CHANGELOG.md = CHANGELOG.md
 		CONTRIBUTING.md = CONTRIBUTING.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.RavenDb", "Rebus.RavenDb\Rebus.RavenDb.csproj", "{33924FFC-68AB-4476-AC35-837FE7C520C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.RavenDb", "Rebus.RavenDb\Rebus.RavenDb.csproj", "{33924FFC-68AB-4476-AC35-837FE7C520C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.RavenDb.Tests", "Rebus.RavenDb.Tests\Rebus.RavenDb.Tests.csproj", "{CC8CF5E2-E31B-437E-9E76-CE71167EAC2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebus.RavenDb.Tests", "Rebus.RavenDb.Tests\Rebus.RavenDb.Tests.csproj", "{CC8CF5E2-E31B-437E-9E76-CE71167EAC2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,5 +32,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F2B941DE-A2D3-42F5-96B8-0F6B0A1281C9}
 	EndGlobalSection
 EndGlobal
