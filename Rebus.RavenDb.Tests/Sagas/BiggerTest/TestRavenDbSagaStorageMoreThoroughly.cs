@@ -3,16 +3,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Raven.Client;
+using Raven.Client.Documents;
 using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.RavenDb.Sagas;
 using Rebus.Sagas;
-using Rebus.Tests;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Extensions;
 using Rebus.Transport.InMem;
+// ReSharper disable ArgumentsStyleNamedExpression
 
 namespace Rebus.RavenDb.Tests.Sagas.BiggerTest
 {
@@ -23,6 +23,7 @@ namespace Rebus.RavenDb.Tests.Sagas.BiggerTest
         RavenDbSagaStorageFactory _factory;
 
         IDocumentStore _documentStore;
+        IBusStarter _starter;
 
         protected override void SetUp()
         {
@@ -32,7 +33,7 @@ namespace Rebus.RavenDb.Tests.Sagas.BiggerTest
             _activator = new BuiltinHandlerActivator();
             Using(_activator);
 
-            Configure.With(_activator)
+            _starter = Configure.With(_activator)
                 .Logging(l => l.Console(minLevel: LogLevel.Error))
                 .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "raven"))
                 .Sagas(s => s.StoreInRavenDb(_documentStore))
@@ -41,7 +42,7 @@ namespace Rebus.RavenDb.Tests.Sagas.BiggerTest
                     o.SetNumberOfWorkers(1);
                     o.SetMaxParallelism(2);
                 })
-                .Start();
+                .Create();
         }
 
         protected override void TearDown()
@@ -53,6 +54,7 @@ namespace Rebus.RavenDb.Tests.Sagas.BiggerTest
         public async Task EndsUpInConsistentState()
         {
             _activator.Register(() => new RavenSagaHandler());
+            _starter.Start();
 
             var messages = Enumerable.Repeat(new Message1("saga1"), 10).Cast<object>()
                 .Concat(Enumerable.Repeat(new Message2("saga1"), 10))

@@ -2,15 +2,14 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NUnit.Framework;
-using Raven.Imports.Newtonsoft.Json;
 using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.RavenDb.Sagas;
 using Rebus.RavenDb.Tests.Sagas.Models;
 using Rebus.Sagas;
-using Rebus.Tests;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Extensions;
 using Rebus.Transport.InMem;

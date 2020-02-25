@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
-using Raven.Client;
 using Rebus.Subscriptions;
 using System.Threading.Tasks;
-using Raven.Abstractions.Exceptions;
+using Raven.Client.Documents;
+using Raven.Client.Exceptions;
 using Rebus.Logging;
 
 namespace Rebus.RavenDb.Subscriptions
@@ -61,7 +61,7 @@ namespace Rebus.RavenDb.Subscriptions
                     await InnerRegisterSubscriber(topic, subscriberAddress);
                     return;
                 }
-                catch (ConcurrencyException exception)
+                catch (Raven.Client.Exceptions.ConcurrencyException exception)
                 {
                     if (attempt >= 100)
                     {

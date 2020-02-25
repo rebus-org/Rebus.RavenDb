@@ -1,14 +1,15 @@
-using Raven.Abstractions.Commands;
-using Raven.Client;
 using Rebus.Extensions;
 using Rebus.Logging;
 using Rebus.Messages;
-using Rebus.Time;
 using Rebus.Timeouts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Commands.Batches;
+using Rebus.Time;
+
 #pragma warning disable 1998
 
 namespace Rebus.RavenDb.Timouts
@@ -19,14 +20,17 @@ namespace Rebus.RavenDb.Timouts
     public class RavenDbTimeoutManager : ITimeoutManager
     {
         readonly IDocumentStore _documentStore;
+        readonly IRebusTime _rebusTime;
         readonly ILog _log;
 
         /// <summary>
         /// Creates the timeout manager, using the given document store to store <see cref="Timeout"/> documents
         /// </summary>
-        public RavenDbTimeoutManager(IDocumentStore documentStore, IRebusLoggerFactory rebusLoggerFactory)
+        public RavenDbTimeoutManager(IDocumentStore documentStore, IRebusLoggerFactory rebusLoggerFactory, IRebusTime rebusTime)
         {
-            _documentStore = documentStore;
+            if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
+            _documentStore = documentStore ?? throw new ArgumentNullException(nameof(documentStore));
+            _rebusTime = rebusTime ?? throw new ArgumentNullException(nameof(rebusTime));
             _log = rebusLoggerFactory.GetLogger<RavenDbTimeoutManager>();
         }
 
@@ -34,6 +38,7 @@ namespace Rebus.RavenDb.Timouts
         public async Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {
             var newTimeout = new Timeout(headers, body, approximateDueTime.UtcDateTime);
+            
             _log.Debug("Deferring message with ID {0} until {1} (doc ID {2})", headers.GetValue(Headers.MessageId), approximateDueTime, newTimeout.Id);
 
             using (var session = _documentStore.OpenAsyncSession())
@@ -48,11 +53,11 @@ namespace Rebus.RavenDb.Timouts
         /// </summary>
         public async Task<DueMessagesResult> GetDueMessages()
         {
-            var now = RebusTime.Now.UtcDateTime;
+            var now = _rebusTime.Now.UtcDateTime;
 
             var session = _documentStore.OpenSession();
 
-            var timeouts = session.Query<Timeout, TimeoutIndex>()
+            var timeouts = session.Query<Timeout>()
                 .Customize(x => x.WaitForNonStaleResults(TimeSpan.FromSeconds(10)))
                 .Where(x => x.DueTimeUtc <= now)
                 .ToList();
@@ -60,7 +65,9 @@ namespace Rebus.RavenDb.Timouts
             var dueMessages = timeouts
                 .Select(timeout => new DueMessage(timeout.Headers, timeout.Body, async () =>
                 {
-                    session.Advanced.Defer(new DeleteCommandData {Key = timeout.Id});
+                    var command = new DeleteCommandData(timeout.Id, session.Advanced.GetChangeVectorFor(timeout));
+
+                    session.Advanced.Defer(command);
                 }));
 
             return new DueMessagesResult(dueMessages, async () =>

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using Raven.Client.Embedded;
 using Rebus.Logging;
 using Rebus.RavenDb.Subscriptions;
+using Rebus.RavenDb.Tests.Sagas;
 using Rebus.Subscriptions;
 using Rebus.Tests.Contracts.Subscriptions;
 
@@ -14,13 +14,7 @@ namespace Rebus.RavenDb.Tests.Subscriptions
 
         public ISubscriptionStorage Create()
         {
-            var documentStore = new EmbeddableDocumentStore
-            {
-                RunInMemory = true,
-            };
-
-            documentStore.Configuration.Storage.Voron.AllowOn32Bits = true;
-            documentStore.Initialize();
+            var documentStore = RavenTestHelper.GetDocumentStore();
 
             _disposables.Push(documentStore);
 
@@ -29,9 +23,7 @@ namespace Rebus.RavenDb.Tests.Subscriptions
 
         public void Cleanup()
         {
-            IDisposable disposable;
-
-            while (_disposables.TryPop(out disposable))
+            while (_disposables.TryPop(out var disposable))
             {
                 disposable.Dispose();
             }

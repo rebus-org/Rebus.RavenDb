@@ -1,11 +1,12 @@
 ﻿using System;
-using Raven.Client;
+using Raven.Client.Documents;
 using Rebus.Logging;
 using Rebus.RavenDb.Sagas;
 using Rebus.RavenDb.Subscriptions;
 using Rebus.RavenDb.Timouts;
 using Rebus.Sagas;
 using Rebus.Subscriptions;
+using Rebus.Time;
 using Rebus.Timeouts;
 
 namespace Rebus.Config
@@ -57,7 +58,8 @@ namespace Rebus.Config
             configurer.Register(c =>
             {
                 var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-                var timeoutManager = new RavenDbTimeoutManager(documentStore, rebusLoggerFactory);
+                var rebusTime = c.Get<IRebusTime>();
+                var timeoutManager = new RavenDbTimeoutManager(documentStore, rebusLoggerFactory, rebusTime);
                 return timeoutManager;
             });
         }

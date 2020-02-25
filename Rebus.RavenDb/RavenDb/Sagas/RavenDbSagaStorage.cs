@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-// ReSharper disable once RedundantUsingDirective (because .net core :))
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Raven.Client;
-using Raven.Imports.Newtonsoft.Json;
+using Newtonsoft.Json;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
 using Rebus.Exceptions;
 using Rebus.Sagas;
 // ReSharper disable UnusedMember.Local
@@ -100,7 +99,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not insert saga data with ID {sagaData.Id}");
                 }
@@ -147,7 +146,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not update saga data with ID {sagaData.Id} to revision {sagaData.Revision}");
                 }
@@ -178,7 +177,7 @@ namespace Rebus.RavenDb.Sagas
 
                     await session.SaveChangesAsync();
                 }
-                catch (Raven.Abstractions.Exceptions.ConcurrencyException ravenDbConcurrencyException)
+                catch (Raven.Client.Exceptions.ConcurrencyException ravenDbConcurrencyException)
                 {
                     throw new ConcurrencyException(ravenDbConcurrencyException, $"Could not delete saga data with ID {sagaData.Id}");
                 }
@@ -197,11 +196,10 @@ namespace Rebus.RavenDb.Sagas
 
         static async Task DeleteCorrelationProperties(IEnumerable<string> correlationPropertyIds, IAsyncDocumentSession session, string documentId)
         {
-            var existingSagaCorrelationPropertyDocuments =
-                await session.LoadAsync<SagaCorrelationPropertyDocument>(correlationPropertyIds);
+            var existingSagaCorrelationPropertyDocuments = await session.LoadAsync<SagaCorrelationPropertyDocument>(correlationPropertyIds);
 
             //delete the existing saga correlation documents
-            foreach (var existingSagaCorrelationPropertyDocument in existingSagaCorrelationPropertyDocuments)
+            foreach (var existingSagaCorrelationPropertyDocument in existingSagaCorrelationPropertyDocuments.Values)
             {
                 // if - for some reason - the correlation property belongs to someone else (this should not happen) - we skip it!
                 if (existingSagaCorrelationPropertyDocument.SagaDataDocumentId != documentId) continue;
