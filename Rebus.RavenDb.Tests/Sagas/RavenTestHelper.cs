@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Raven.Client.Documents;
 using Raven.Embedded;
 
@@ -6,37 +7,37 @@ namespace Rebus.RavenDb.Tests.Sagas;
 
 static class RavenTestHelper
 {
-    static RavenTestHelper()
+    static readonly Lazy<EmbeddedServer> ServerInstance = new(() =>
     {
-        try
-        {
-            EmbeddedServer.Instance.StartServer();
-        }
-        catch (Exception exception)
-        {
-            throw new ApplicationException("Exception when starting embedded RavenDB server", exception);
-        }
+        var instance = EmbeddedServer.Instance;
+        var temporaryDirectory = Path.Combine(AppContext.BaseDirectory, Guid.NewGuid().ToString("N"));
 
-        AppDomain.CurrentDomain.DomainUnload += (o, ea) =>
+        instance.StartServer(new ServerOptions { DataDirectory = temporaryDirectory });
+
+        AppDomain.CurrentDomain.DomainUnload += (_, _) =>
         {
+            instance.Dispose();
+
             try
             {
-                EmbeddedServer.Instance.Dispose();
+                Directory.Delete(temporaryDirectory, recursive: true);
             }
             catch (Exception exception)
             {
-                Console.WriteLine($"Exception when stopping embedded RavenDB server: {exception}");
+                Console.WriteLine($"ERROR when deleting temp directory '{temporaryDirectory}': {exception}");
             }
         };
-    }
+
+        return instance;
+    });
 
     static int _counter = 1;
-        
+
     public static IDocumentStore GetDocumentStore()
     {
         var databaseName = $"rebustestdb_{_counter++}";
         Console.WriteLine($"Getting document store named '{databaseName}'");
-        var documentStore = EmbeddedServer.Instance.GetDocumentStore(databaseName);
+        var documentStore = ServerInstance.Value.GetDocumentStore(databaseName);
         documentStore.Initialize();
         return documentStore;
     }

@@ -10,7 +10,7 @@ namespace Rebus.RavenDb.Tests.Subscriptions;
 
 public class RavenDbSubscriptionStorageFactory : ISubscriptionStorageFactory
 {
-    readonly ConcurrentStack<IDisposable> _disposables = new ConcurrentStack<IDisposable>();
+    readonly ConcurrentStack<IDisposable> _disposables = new();
 
     public ISubscriptionStorage Create()
     {

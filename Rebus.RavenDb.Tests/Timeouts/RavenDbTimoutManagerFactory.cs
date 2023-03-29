@@ -11,8 +11,8 @@ namespace Rebus.RavenDb.Tests.Timeouts;
 
 public class RavenDbTimoutManagerFactory : ITimeoutManagerFactory
 {
-    readonly FakeRebusTime _fakeRebusTime = new FakeRebusTime();
     readonly IDocumentStore _documentStore = RavenTestHelper.GetDocumentStore();
+    readonly FakeRebusTime _fakeRebusTime = new();
 
     public RavenDbTimoutManagerFactory()
     {
