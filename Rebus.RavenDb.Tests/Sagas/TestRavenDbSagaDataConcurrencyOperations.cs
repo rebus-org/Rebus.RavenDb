@@ -7,94 +7,93 @@ using Rebus.Tests;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Sagas;
 
-namespace Rebus.RavenDb.Tests.Sagas
+namespace Rebus.RavenDb.Tests.Sagas;
+
+[TestFixture]
+public class TestRavenDbSagaDataConcurrencyOperations : FixtureBase
 {
-    [TestFixture]
-    public class TestRavenDbSagaDataConcurrencyOperations : FixtureBase
+    RavenDbSagaStorageFactory _factory;
+    ISagaStorage _storage;
+
+    protected override void SetUp()
     {
-        RavenDbSagaStorageFactory _factory;
-        ISagaStorage _storage;
+        _factory = new RavenDbSagaStorageFactory();
+        _storage = _factory.GetSagaStorage();
+    }
 
-        protected override void SetUp()
+    protected override void TearDown()
+    {
+        _factory.CleanUp();
+    }
+
+    [Test]
+    public async Task CannotInsertSameSagaDataTwice()
+    {
+        var correlationProperties = new ISagaCorrelationProperty[]
         {
-            _factory = new RavenDbSagaStorageFactory();
-            _storage = _factory.GetSagaStorage();
-        }
+            new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty1), typeof(JustSomeSagaData)),
+            new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty2), typeof(JustSomeSagaData)),
+        };
 
-        protected override void TearDown()
+        var sagaDataId = Guid.NewGuid();
+        var sagaData = new JustSomeSagaData { Id = sagaDataId };
+        await _storage.Insert(sagaData, correlationProperties);
+
+        var aggregateException = Assert.Throws<AggregateException>(() =>
         {
-            _factory.CleanUp();
-        }
+            _storage.Insert(sagaData, correlationProperties).Wait();
+        });
 
-        [Test]
-        public async Task CannotInsertSameSagaDataTwice()
+        var baseException = aggregateException.GetBaseException();
+
+        Console.WriteLine(baseException);
+
+        Assert.That(baseException, Is.TypeOf<ConcurrencyException>());
+    }
+
+    [Test]
+    public async Task CannotUpdateSagaDataInParallel()
+    {
+        var correlationProperties = new ISagaCorrelationProperty[]
         {
-            var correlationProperties = new ISagaCorrelationProperty[]
-            {
-                new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty1), typeof(JustSomeSagaData)),
-                new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty2), typeof(JustSomeSagaData)),
-            };
+            new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty1), typeof(JustSomeSagaData)),
+            new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty2), typeof(JustSomeSagaData)),
+        };
 
-            var sagaDataId = Guid.NewGuid();
-            var sagaData = new JustSomeSagaData { Id = sagaDataId };
-            await _storage.Insert(sagaData, correlationProperties);
-
-            var aggregateException = Assert.Throws<AggregateException>(() =>
-            {
-                _storage.Insert(sagaData, correlationProperties).Wait();
-            });
-
-            var baseException = aggregateException.GetBaseException();
-
-            Console.WriteLine(baseException);
-
-            Assert.That(baseException, Is.TypeOf<ConcurrencyException>());
-        }
-
-        [Test]
-        public async Task CannotUpdateSagaDataInParallel()
+        var sagaData = new JustSomeSagaData
         {
-            var correlationProperties = new ISagaCorrelationProperty[]
-            {
-                new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty1), typeof(JustSomeSagaData)),
-                new TestCorrelationProperty(nameof(JustSomeSagaData.CorrelationProperty2), typeof(JustSomeSagaData)),
-            };
+            Id = Guid.NewGuid(),
+            CorrelationProperty1 = "c1",
+            CorrelationProperty2 = "c2"
+        };
 
-            var sagaData = new JustSomeSagaData
-            {
-                Id = Guid.NewGuid(),
-                CorrelationProperty1 = "c1",
-                CorrelationProperty2 = "c2"
-            };
+        await _storage.Insert(sagaData, correlationProperties);
 
-            await _storage.Insert(sagaData, correlationProperties);
+        var data1 = (JustSomeSagaData)await _storage.Find(typeof(JustSomeSagaData), nameof(JustSomeSagaData.CorrelationProperty1), "c1");
+        var data2 = (JustSomeSagaData)await _storage.Find(typeof(JustSomeSagaData), nameof(JustSomeSagaData.CorrelationProperty2), "c2");
 
-            var data1 = (JustSomeSagaData)await _storage.Find(typeof(JustSomeSagaData), nameof(JustSomeSagaData.CorrelationProperty1), "c1");
-            var data2 = (JustSomeSagaData)await _storage.Find(typeof(JustSomeSagaData), nameof(JustSomeSagaData.CorrelationProperty2), "c2");
+        data1.Counter++;
+        data2.Counter++;
 
-            data1.Counter++;
-            data2.Counter++;
+        await _storage.Update(data1, correlationProperties);
 
-            await _storage.Update(data1, correlationProperties);
-
-            var aggregateException = Assert.Throws<AggregateException>(() =>
-            {
-                _storage.Update(data2, correlationProperties).Wait();
-            });
-
-            var baseException = aggregateException.GetBaseException();
-
-            Console.WriteLine(baseException);
-
-            Assert.That(baseException, Is.TypeOf<ConcurrencyException>());
-        }
-
-        class JustSomeSagaData : SagaData
+        var aggregateException = Assert.Throws<AggregateException>(() =>
         {
-            public string CorrelationProperty1 { get; set; }
-            public string CorrelationProperty2 { get; set; }
+            _storage.Update(data2, correlationProperties).Wait();
+        });
 
-            public int Counter { get; set; }
-        }
+        var baseException = aggregateException.GetBaseException();
+
+        Console.WriteLine(baseException);
+
+        Assert.That(baseException, Is.TypeOf<ConcurrencyException>());
+    }
+
+    class JustSomeSagaData : SagaData
+    {
+        public string CorrelationProperty1 { get; set; }
+        public string CorrelationProperty2 { get; set; }
+
+        public int Counter { get; set; }
     }
 }

@@ -1,40 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
- <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rebus.RavenDb.Tests</RootNamespace>
-    <AssemblyName>Rebus.RavenDb.Tests</AssemblyName>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>RELEASE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Rebus.RavenDb\Rebus.RavenDb.csproj" />
-    <PackageReference Include="microsoft.net.test.sdk" Version="16.5.0" />
-    <PackageReference Include="nunit" Version="3.12.0" />
-    <PackageReference Include="nunit3testadapter" Version="3.16.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="RavenDB.Embedded" Version="4.2.8" />
-    <PackageReference Include="rebus" Version="6.0.0" />
-    <PackageReference Include="rebus.tests.contracts" Version="6.0.0" />
-  </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFrameworks>net7.0</TargetFrameworks>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Rebus.RavenDb\Rebus.RavenDb.csproj" />
+		<PackageReference Include="microsoft.net.test.sdk" Version="17.5.0" />
+		<PackageReference Include="nunit" Version="3.13.3" />
+		<PackageReference Include="nunit3testadapter" Version="4.4.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="RavenDB.Embedded" Version="5.4.102" />
+		<PackageReference Include="rebus.tests.contracts" Version="6.0.0" />
+	</ItemGroup>
 </Project>

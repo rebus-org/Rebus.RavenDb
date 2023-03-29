@@ -6,27 +6,26 @@ using Rebus.RavenDb.Tests.Sagas;
 using Rebus.Subscriptions;
 using Rebus.Tests.Contracts.Subscriptions;
 
-namespace Rebus.RavenDb.Tests.Subscriptions
+namespace Rebus.RavenDb.Tests.Subscriptions;
+
+public class RavenDbSubscriptionStorageFactory : ISubscriptionStorageFactory
 {
-    public class RavenDbSubscriptionStorageFactory : ISubscriptionStorageFactory
+    readonly ConcurrentStack<IDisposable> _disposables = new ConcurrentStack<IDisposable>();
+
+    public ISubscriptionStorage Create()
     {
-        readonly ConcurrentStack<IDisposable> _disposables = new ConcurrentStack<IDisposable>();
+        var documentStore = RavenTestHelper.GetDocumentStore();
 
-        public ISubscriptionStorage Create()
+        _disposables.Push(documentStore);
+
+        return new RavenDbSubscriptionStorage(documentStore, true, new ConsoleLoggerFactory(false));
+    }
+
+    public void Cleanup()
+    {
+        while (_disposables.TryPop(out var disposable))
         {
-            var documentStore = RavenTestHelper.GetDocumentStore();
-
-            _disposables.Push(documentStore);
-
-            return new RavenDbSubscriptionStorage(documentStore, true, new ConsoleLoggerFactory(false));
-        }
-
-        public void Cleanup()
-        {
-            while (_disposables.TryPop(out var disposable))
-            {
-                disposable.Dispose();
-            }
+            disposable.Dispose();
         }
     }
 }

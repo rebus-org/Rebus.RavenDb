@@ -9,59 +9,58 @@ using Rebus.Subscriptions;
 using Rebus.Time;
 using Rebus.Timeouts;
 
-namespace Rebus.Config
+namespace Rebus.Config;
+
+/// <summary>
+/// Configuration extensions for RavenDB persistence
+/// </summary>
+public static class RavenDbConfigurationExtensions
 {
     /// <summary>
-    /// Configuration extensions for RavenDB persistence
+    /// Configures Rebus to use RavenDb to store sagas
     /// </summary>
-    public static class RavenDbConfigurationExtensions
+    public static void StoreInRavenDb(this StandardConfigurer<ISagaStorage> configurer, IDocumentStore documentStore)
     {
-        /// <summary>
-        /// Configures Rebus to use RavenDb to store sagas
-        /// </summary>
-        public static void StoreInRavenDb(this StandardConfigurer<ISagaStorage> configurer, IDocumentStore documentStore)
+        if (configurer == null) throw new ArgumentNullException(nameof(configurer));
+        if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
+
+        configurer.Register(c => new RavenDbSagaStorage(documentStore));
+    }
+
+    /// <summary>
+    /// Configures Rebus to use RavenDb to store subscriptions. Use <paramref name="isCentralized"/> = true to indicate whether it's OK to short-circuit
+    /// subscribing and unsubscribing by manipulating the subscription directly from the subscriber or just let it default to false to preserve the
+    /// default behavior.
+    /// </summary>
+    public static void StoreInRavenDb(this StandardConfigurer<ISubscriptionStorage> configurer, IDocumentStore documentStore, bool isCentralized = false)
+    {
+        if (configurer == null) throw new ArgumentNullException(nameof(configurer));
+        if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
+
+        configurer.Register(c =>
         {
-            if (configurer == null) throw new ArgumentNullException(nameof(configurer));
-            if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
+            var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
 
-            configurer.Register(c => new RavenDbSagaStorage(documentStore));
-        }
+            return new RavenDbSubscriptionStorage(documentStore, isCentralized, rebusLoggerFactory);
+        });
+    }
 
-        /// <summary>
-        /// Configures Rebus to use RavenDb to store subscriptions. Use <paramref name="isCentralized"/> = true to indicate whether it's OK to short-circuit
-        /// subscribing and unsubscribing by manipulating the subscription directly from the subscriber or just let it default to false to preserve the
-        /// default behavior.
-        /// </summary>
-        public static void StoreInRavenDb(this StandardConfigurer<ISubscriptionStorage> configurer, IDocumentStore documentStore, bool isCentralized = false)
+    /// <summary>
+    /// Configures Rebus to use RavenDb to store timeouts.
+    /// </summary>
+    public static void StoreInRavenDb(this StandardConfigurer<ITimeoutManager> configurer, IDocumentStore documentStore)
+    {
+        if (configurer == null) throw new ArgumentNullException(nameof(configurer));
+        if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
+
+        documentStore.ExecuteIndex(new TimeoutIndex());
+
+        configurer.Register(c =>
         {
-            if (configurer == null) throw new ArgumentNullException(nameof(configurer));
-            if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
-
-            configurer.Register(c =>
-            {
-                var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-
-                return new RavenDbSubscriptionStorage(documentStore, isCentralized, rebusLoggerFactory);
-            });
-        }
-
-        /// <summary>
-        /// Configures Rebus to use RavenDb to store timeouts.
-        /// </summary>
-        public static void StoreInRavenDb(this StandardConfigurer<ITimeoutManager> configurer, IDocumentStore documentStore)
-        {
-            if (configurer == null) throw new ArgumentNullException(nameof(configurer));
-            if (documentStore == null) throw new ArgumentNullException(nameof(documentStore));
-
-            documentStore.ExecuteIndex(new TimeoutIndex());
-
-            configurer.Register(c =>
-            {
-                var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-                var rebusTime = c.Get<IRebusTime>();
-                var timeoutManager = new RavenDbTimeoutManager(documentStore, rebusLoggerFactory, rebusTime);
-                return timeoutManager;
-            });
-        }
+            var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
+            var rebusTime = c.Get<IRebusTime>();
+            var timeoutManager = new RavenDbTimeoutManager(documentStore, rebusLoggerFactory, rebusTime);
+            return timeoutManager;
+        });
     }
 }

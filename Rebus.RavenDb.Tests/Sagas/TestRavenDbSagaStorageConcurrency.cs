@@ -14,80 +14,79 @@ using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Extensions;
 using Rebus.Transport.InMem;
 
-namespace Rebus.RavenDb.Tests.Sagas
+namespace Rebus.RavenDb.Tests.Sagas;
+
+[TestFixture]
+public class TestRavenDbSagaStorageConcurrency : FixtureBase
 {
-    [TestFixture]
-    public class TestRavenDbSagaStorageConcurrency : FixtureBase
+    BuiltinHandlerActivator _activator;
+    RavenDbSagaStorageFactory _factory;
+
+    protected override void SetUp()
     {
-        BuiltinHandlerActivator _activator;
-        RavenDbSagaStorageFactory _factory;
+        _factory = new RavenDbSagaStorageFactory();
 
-        protected override void SetUp()
-        {
-            _factory = new RavenDbSagaStorageFactory();
+        _activator = Using(new BuiltinHandlerActivator());
 
-            _activator = Using(new BuiltinHandlerActivator());
-
-            Configure.With(_activator)
-                .Logging(l => l.Console(LogLevel.Info))
-                .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "stresstest"))
-                .Sagas(s => s.StoreInRavenDb(_factory.DocumentStore))
-                .Options(o =>
-                {
-                    o.SetNumberOfWorkers(0);
+        Configure.With(_activator)
+            .Logging(l => l.Console(LogLevel.Info))
+            .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "stresstest"))
+            .Sagas(s => s.StoreInRavenDb(_factory.DocumentStore))
+            .Options(o =>
+            {
+                o.SetNumberOfWorkers(0);
                     
-                    // pretty parallel!!
-                    o.SetMaxParallelism(100);
-                })
-                .Start();
+                // pretty parallel!!
+                o.SetMaxParallelism(100);
+            })
+            .Start();
+    }
+
+    protected override void TearDown()
+    {
+        _factory.CleanUp();
+    }
+
+    [Test]
+    public void CountsAsExpected()
+    {
+        _activator.Register(() => new CountingSaga());
+
+        Console.WriteLine("Queueing up some messages");
+
+        10.Times(() => _activator.Bus.SendLocal("hej!").Wait());
+
+        Console.WriteLine("Starting adding 10 workers");
+
+        _activator.Bus.Advanced.Workers.SetNumberOfWorkers(10);
+
+        Console.WriteLine("Waiting a while...");
+
+        Thread.Sleep(5000);
+
+        using (var session = _factory.DocumentStore.OpenSession())
+        {
+            var allDocuments = session.Query<RavenDbSagaStorage.SagaDataDocument>()
+                .Customize(c => c.WaitForNonStaleResults())
+                .ToList();
+
+            Console.WriteLine(JsonConvert.SerializeObject(allDocuments));
+
+            Assert.That(allDocuments.Count, Is.EqualTo(1));
+        }
+    }
+
+    class CountingSaga : Saga<BasicSagaData>, IAmInitiatedBy<string>
+    {
+        protected override void CorrelateMessages(ICorrelationConfig<BasicSagaData> config)
+        {
+            config.Correlate<string>(msg => msg, d => d.StringField);
         }
 
-        protected override void TearDown()
+        public async Task Handle(string message)
         {
-            _factory.CleanUp();
-        }
-
-        [Test]
-        public void CountsAsExpected()
-        {
-            _activator.Register(() => new CountingSaga());
-
-            Console.WriteLine("Queueing up some messages");
-
-            10.Times(() => _activator.Bus.SendLocal("hej!").Wait());
-
-            Console.WriteLine("Starting adding 10 workers");
-
-            _activator.Bus.Advanced.Workers.SetNumberOfWorkers(10);
-
-            Console.WriteLine("Waiting a while...");
-
-            Thread.Sleep(5000);
-
-            using (var session = _factory.DocumentStore.OpenSession())
-            {
-                var allDocuments = session.Query<RavenDbSagaStorage.SagaDataDocument>()
-                    .Customize(c => c.WaitForNonStaleResults())
-                    .ToList();
-
-                Console.WriteLine(JsonConvert.SerializeObject(allDocuments));
-
-                Assert.That(allDocuments.Count, Is.EqualTo(1));
-            }
-        }
-
-        class CountingSaga : Saga<BasicSagaData>, IAmInitiatedBy<string>
-        {
-            protected override void CorrelateMessages(ICorrelationConfig<BasicSagaData> config)
-            {
-                config.Correlate<string>(msg => msg, d => d.StringField);
-            }
-
-            public async Task Handle(string message)
-            {
-                Data.StringField = message;
-                Data.IntegerField ++;
-            }
+            Data.StringField = message;
+            Data.IntegerField ++;
         }
     }
 }

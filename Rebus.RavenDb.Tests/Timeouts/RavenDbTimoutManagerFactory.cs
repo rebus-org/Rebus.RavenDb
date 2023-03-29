@@ -7,39 +7,38 @@ using Rebus.Tests.Contracts.Timeouts;
 using Rebus.Time;
 using Rebus.Timeouts;
 
-namespace Rebus.RavenDb.Tests.Timeouts
+namespace Rebus.RavenDb.Tests.Timeouts;
+
+public class RavenDbTimoutManagerFactory : ITimeoutManagerFactory
 {
-    public class RavenDbTimoutManagerFactory : ITimeoutManagerFactory
+    readonly FakeRebusTime _fakeRebusTime = new FakeRebusTime();
+    readonly IDocumentStore _documentStore = RavenTestHelper.GetDocumentStore();
+
+    public RavenDbTimoutManagerFactory()
     {
-        readonly FakeRebusTime _fakeRebusTime = new FakeRebusTime();
-        readonly IDocumentStore _documentStore = RavenTestHelper.GetDocumentStore();
+        _documentStore.ExecuteIndex(new TimeoutIndex());
+    }
 
-        public RavenDbTimoutManagerFactory()
-        {
-            _documentStore.ExecuteIndex(new TimeoutIndex());
-        }
+    public void FakeIt(DateTimeOffset fakeTime)
+    {
+        _fakeRebusTime.SetNow(fakeTime);
+    }
 
-        public void FakeIt(DateTimeOffset fakeTime)
-        {
-            _fakeRebusTime.SetNow(fakeTime);
-        }
+    public ITimeoutManager Create() => new RavenDbTimeoutManager(_documentStore, new ConsoleLoggerFactory(false), _fakeRebusTime);
 
-        public ITimeoutManager Create() => new RavenDbTimeoutManager(_documentStore, new ConsoleLoggerFactory(false), _fakeRebusTime);
+    public void Cleanup() => _documentStore.Dispose();
 
-        public void Cleanup() => _documentStore.Dispose();
+    public string GetDebugInfo()
+    {
+        return "could not provide debug info for this particular timeout manager.... implement if needed :)";
+    }
 
-        public string GetDebugInfo()
-        {
-            return "could not provide debug info for this particular timeout manager.... implement if needed :)";
-        }
+    class FakeRebusTime : IRebusTime
+    {
+        Func<DateTimeOffset> _nowFactory = () => DateTimeOffset.Now;
 
-        class FakeRebusTime : IRebusTime
-        {
-            Func<DateTimeOffset> _nowFactory = () => DateTimeOffset.Now;
+        public DateTimeOffset Now => _nowFactory();
 
-            public DateTimeOffset Now => _nowFactory();
-
-            public void SetNow(DateTimeOffset fakeTime) => _nowFactory = () => fakeTime;
-        }
+        public void SetNow(DateTimeOffset fakeTime) => _nowFactory = () => fakeTime;
     }
 }

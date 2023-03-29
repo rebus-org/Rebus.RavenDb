@@ -1,7 +1,6 @@
-namespace Rebus.RavenDb.Tests
+namespace Rebus.RavenDb.Tests;
+
+public class TestCategory
 {
-    public class TestCategory
-    {
-        public const string RavenDb = "ravendb";
-    }
+    public const string RavenDb = "ravendb";
 }

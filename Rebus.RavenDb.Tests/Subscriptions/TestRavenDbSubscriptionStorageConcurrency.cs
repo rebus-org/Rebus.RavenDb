@@ -5,66 +5,65 @@ using NUnit.Framework;
 using Rebus.Tests;
 using Rebus.Tests.Contracts;
 
-namespace Rebus.RavenDb.Tests.Subscriptions
+namespace Rebus.RavenDb.Tests.Subscriptions;
+
+[TestFixture]
+public class TestRavenDbSubscriptionStorageConcurrency : FixtureBase
 {
-    [TestFixture]
-    public class TestRavenDbSubscriptionStorageConcurrency : FixtureBase
+    RavenDbSubscriptionStorageFactory _factory;
+
+    protected override void SetUp()
     {
-        RavenDbSubscriptionStorageFactory _factory;
+        _factory = new RavenDbSubscriptionStorageFactory();
+    }
 
-        protected override void SetUp()
-        {
-            _factory = new RavenDbSubscriptionStorageFactory();
-        }
+    protected override void TearDown()
+    {
+        _factory.Cleanup();
+    }
 
-        protected override void TearDown()
-        {
-            _factory.Cleanup();
-        }
+    [Test]
+    public void HandlesConcurrencyExceptionsWell()
+    {
+        const string contentedTopic = "contention!!";
 
-        [Test]
-        public void HandlesConcurrencyExceptionsWell()
-        {
-            const string contentedTopic = "contention!!";
+        var subscriptionStorage = _factory.Create();
 
-            var subscriptionStorage = _factory.Create();
+        var caughtException = false;
 
-            var caughtException = false;
-
-            var threads = Enumerable.Range(0, 10)
-                .Select(i => new Thread(() =>
+        var threads = Enumerable.Range(0, 10)
+            .Select(i => new Thread(() =>
+            {
+                try
                 {
-                    try
-                    {
-                        subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(5);
-                        subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(3);
-                        subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(2);
-                        subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(7);
-                        subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(1);
-                        subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(1);
-                        subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(1);
-                        subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
-                        Thread.Sleep(1);
-                    }
-                    catch (Exception exception)
-                    {
-                        Console.WriteLine(exception);
-                        caughtException = true;
-                    }
-                }))
-                .ToList();
+                    subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(5);
+                    subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(3);
+                    subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(2);
+                    subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(7);
+                    subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(1);
+                    subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(1);
+                    subscriptionStorage.RegisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(1);
+                    subscriptionStorage.UnregisterSubscriber(contentedTopic, $"sub{i}").Wait();
+                    Thread.Sleep(1);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                    caughtException = true;
+                }
+            }))
+            .ToList();
 
-            threads.ForEach(t => t.Start());
-            threads.ForEach(t => t.Join());
+        threads.ForEach(t => t.Start());
+        threads.ForEach(t => t.Join());
 
-            Assert.That(caughtException, Is.False);
-        }
+        Assert.That(caughtException, Is.False);
     }
 }

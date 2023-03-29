@@ -2,22 +2,21 @@ using System.Linq;
 using Raven.Client.Documents.Indexes;
 // ReSharper disable RedundantAnonymousTypePropertyName
 
-namespace Rebus.RavenDb.Timouts
+namespace Rebus.RavenDb.Timouts;
+
+class TimeoutIndex : AbstractIndexCreationTask<Timeout>
 {
-    class TimeoutIndex : AbstractIndexCreationTask<Timeout>
+    /// <summary>
+    /// Defines the index
+    /// </summary>
+    public TimeoutIndex()
     {
-        /// <summary>
-        /// Defines the index
-        /// </summary>
-        public TimeoutIndex()
-        {
-            Map = timeouts =>
-                from timeout in timeouts
-                select new
-                {
-                    Id = timeout.Id,
-                    DueTimeUtc = timeout.DueTimeUtc
-                };
-        }
+        Map = timeouts =>
+            from timeout in timeouts
+            select new
+            {
+                Id = timeout.Id,
+                DueTimeUtc = timeout.DueTimeUtc
+            };
     }
 }

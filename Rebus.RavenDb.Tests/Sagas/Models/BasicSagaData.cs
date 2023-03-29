@@ -1,15 +1,14 @@
 ﻿using System;
 using Rebus.Sagas;
 
-namespace Rebus.RavenDb.Tests.Sagas.Models
+namespace Rebus.RavenDb.Tests.Sagas.Models;
+
+public class BasicSagaData : ISagaData
 {
-    public class BasicSagaData : ISagaData
-    {
-        public Guid Id { get; set; }
-        public int Revision { get; set; }
+    public Guid Id { get; set; }
+    public int Revision { get; set; }
 
-        public string StringField { get; set; }
+    public string StringField { get; set; }
 
-        public int IntegerField { get; set; }
-    }
+    public int IntegerField { get; set; }
 }
