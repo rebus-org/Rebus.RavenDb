@@ -16,7 +16,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ravendb.client" Version="5.4.102" />
-		<PackageReference Include="Rebus" Version="6.0.0" />
+		<PackageReference Include="Rebus" Version="8.0.0-alpha01" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Internals\" />

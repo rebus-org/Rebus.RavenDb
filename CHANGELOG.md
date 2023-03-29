@@ -22,6 +22,9 @@
 ## 6.0.0
 * Update to Rebus 6
 
+## 7.0.0-alpha01
+* Update to Rebus 8
+
 ---
 
 [SvenVandenbrande]: https://github.com/SvenVandenbrande

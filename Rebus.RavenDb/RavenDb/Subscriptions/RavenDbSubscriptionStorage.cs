@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Rebus.Subscriptions;
 using System.Threading.Tasks;
@@ -35,10 +36,10 @@ public class RavenDbSubscriptionStorage : ISubscriptionStorage
     /// <summary>
     /// Gets all destination addresses for the given topic
     /// </summary>
-    public async Task<string[]> GetSubscriberAddresses(string topic)
+    public async Task<IReadOnlyList<string>> GetSubscriberAddresses(string topic)
     {
         using var session = _documentStore.OpenAsyncSession();
-        
+
         var topicDocument = await session.LoadAsync<Topic>(topic);
 
         return topicDocument?.SubscriberAddresses.ToArray() ?? Array.Empty<string>();
@@ -107,7 +108,7 @@ public class RavenDbSubscriptionStorage : ISubscriptionStorage
     async Task InnerUnregisterSubscriber(string topic, string subscriberAddress)
     {
         using var session = _documentStore.OpenAsyncSession();
-        
+
         session.Advanced.UseOptimisticConcurrency = true;
 
         var topicDocument = await session.LoadAsync<Topic>(topic);
@@ -122,7 +123,7 @@ public class RavenDbSubscriptionStorage : ISubscriptionStorage
     async Task InnerRegisterSubscriber(string topic, string subscriberAddress)
     {
         using var session = _documentStore.OpenAsyncSession();
-        
+
         session.Advanced.UseOptimisticConcurrency = true;
 
         var topicDocument = await session.LoadAsync<Topic>(topic);
