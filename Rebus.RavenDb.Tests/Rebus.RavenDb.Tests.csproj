@@ -5,13 +5,13 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Rebus.RavenDb\Rebus.RavenDb.csproj" />
-		<PackageReference Include="microsoft.net.test.sdk" Version="17.5.0" />
-		<PackageReference Include="nunit" Version="3.13.3" />
-		<PackageReference Include="nunit3testadapter" Version="4.4.2">
+		<PackageReference Include="microsoft.net.test.sdk" Version="17.8.0" />
+		<PackageReference Include="nunit" Version="3.14.0" />
+		<PackageReference Include="nunit3testadapter" Version="4.5.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="RavenDB.Embedded" Version="5.4.102" />
-		<PackageReference Include="rebus.tests.contracts" Version="8.0.0-alpha01" />
+		<PackageReference Include="RavenDB.Embedded" Version="6.0.1" />
+		<PackageReference Include="rebus.tests.contracts" Version="8.0.1" />
 	</ItemGroup>
 </Project>

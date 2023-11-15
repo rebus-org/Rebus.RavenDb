@@ -22,8 +22,9 @@
 ## 6.0.0
 * Update to Rebus 6
 
-## 7.0.0-alpha01
+## 7.0.0
 * Update to Rebus 8
+* Update RavenDb.Client to 6.0.1
 
 ---
 
